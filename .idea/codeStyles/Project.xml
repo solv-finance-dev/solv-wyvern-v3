@@ -1,0 +1,13 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <GoCodeStyleSettings>
+      <option name="LOCAL_PACKAGE_PREFIXES" />
+    </GoCodeStyleSettings>
+    <codeStyleSettings language="JavaScript">
+      <option name="BLOCK_COMMENT_ADD_SPACE" value="true" />
+    </codeStyleSettings>
+    <codeStyleSettings language="TypeScript">
+      <option name="BLOCK_COMMENT_ADD_SPACE" value="true" />
+    </codeStyleSettings>
+  </code_scheme>
+</component>
