@@ -15,6 +15,8 @@ module.exports = async ({getNamedAccounts, gasNowPrice, deployments, network}) =
         log: true,
     });
 
+
+
     console.log(`${colors.green("INFO")} ${colors.yellow(`${contractName}`)} deployed at ${colors.green(deployed.address)} on ${colors.red(network.name)}`)
 };
 

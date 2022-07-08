@@ -1,6 +1,16 @@
 const colors = require('colors');
 const { ethers } = require('hardhat');
 
+const txWait = async (tx) => {
+    const receipt = await tx.wait();
+    if (receipt.status || receipt.status == "0x1") {
+        console.log('completed!');
+    }
+    else {
+        await txWait(tx);
+    }
+}
+
 module.exports = async ({getNamedAccounts, gasNowPrice, deployments, network, otherDeployments}) => {
     const {deploy} = deployments
     const {deployer} = await getNamedAccounts();
@@ -27,6 +37,18 @@ module.exports = async ({getNamedAccounts, gasNowPrice, deployments, network, ot
         gasPrice: gasPrice,
         log: true,
     });
+
+    const exchangeAddress = deployed.address
+    const registryFactory = await ethers.getContractFactory("WyvernRegistry");
+    const registry = await registryFactory.attach(registryAddress);
+
+    const auth = await registry.contracts(exchangeAddress)
+    console.log('auth', auth)
+    if (auth === false) {
+        let result = await registry.grantInitialAuthentication(exchangeAddress);
+        await txWait(result);
+        console.log('endGrantAuthentication', result.hash);
+    }
 
     console.log(`${colors.green("INFO")} ${colors.yellow(`${contractName}`)} deployed at ${colors.green(deployed.address)} on ${colors.red(network.name)}`)
 };

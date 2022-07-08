@@ -12,8 +12,8 @@ import "./deploy/helpers/gasNowPrice";
 import "./deploy/helpers/otherDeployments";
 
 const DEPLOYER_PRIVATE_KEY =
-    process.env.RINKEBY_PRIVATE_KEY! ||
-    "0000000000000000000000000000000000000000000000000000000000000000";
+  process.env.RINKEBY_PRIVATE_KEY! ||
+  "0000000000000000000000000000000000000000000000000000000000000000";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 const COINMARKETCAP_API_KEY = process.env.COINMARKETCAP_API_KEY || "";
 const INFURA_KEY = process.env.INFURA_KEY || "";
@@ -42,7 +42,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 100,
+            runs: 10,
           },
         },
       },
@@ -53,10 +53,10 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      chainId: 50
+      chainId: 50,
     },
     localhost: {
-      chainId: 31337
+      chainId: 50,
     },
     development: {
       chainId: 4,
