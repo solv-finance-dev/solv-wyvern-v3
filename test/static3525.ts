@@ -95,7 +95,7 @@ describe("Exchange", function () {
       await deployCoreContracts();
     const erc3525C = (await deployContracts("TestERC3525")) as TestERC3525;
     const erc20C = (await deployContracts("TestERC20")) as TestERC20;
-    console.log("deploy contracts success");
+    console.log("deploy contracts ERC20 && ERC3525 success");
 
     await (await registryC.connect(user1)).registerProxy();
     const proxy1 = await registryC.proxies(user1.address);
@@ -118,11 +118,11 @@ describe("Exchange", function () {
     // list
     const staticInterface = new ethers.utils.Interface(WyvernStaticBin.abi);
     const selectorOne = staticInterface.getSighash("splitAddOne");
-    console.log("selectorOne", selectorOne);
+    console.log("selectorOne: splitAddOne", selectorOne);
     const selectorOneA = staticInterface.getSighash("sequenceExact");
-    console.log("selectorOneA", selectorOneA);
+    console.log("selectorOneA: sequenceExact", selectorOneA);
     const selectorOneB = staticInterface.getSighash("sequenceExact");
-    console.log("selectorOneB", selectorOneB);
+    console.log("selectorOneB: sequenceExact", selectorOneB);
 
     // abi for WyvernAtomicizer::atomicize
     const abi = [
@@ -147,17 +147,22 @@ describe("Exchange", function () {
       ["address", "uint256", "uint256"],
       [erc3525C.address, tokenId, maximumSellValue]
     );
-    console.log("aEDParams", aEDParams);
+    console.log(
+      `aEDParams(erc3525.address, tokenId, maximumSellValue): ${aEDParams}(${erc3525C.address}, ${tokenId}, ${maximumSellValue})`
+    );
     const aEDSelector = staticInterface.getSighash("transferERC3525Exact");
-    console.log("aEDSelector", aEDSelector);
+    console.log("aEDSelector:transferERC3525Exact", aEDSelector);
 
+    const erc20Amount = maximumSellValue * price;
     const bEDParams = ethers.utils.defaultAbiCoder.encode(
       ["address", "uint256"],
-      [erc20C.address, price * sellValue]
+      [erc20C.address, erc20Amount]
     );
-    console.log("bEDParams", bEDParams);
+    console.log(
+      `bEDParams(address,uint256): ${bEDParams}(${erc20C.address}, ${erc20Amount})`
+    );
     const bEDSelector = staticInterface.getSighash("transferERC20Exact");
-    console.log("bEDSelector", bEDSelector);
+    console.log("bEDSelector:transferERC20Exact", bEDSelector);
 
     const extradataOneA = ethers.utils.defaultAbiCoder.encode(
       ["address[]", "uint256[]", "bytes4[]", "bytes"], // TODO: for what
@@ -168,7 +173,11 @@ describe("Exchange", function () {
         aEDParams,
       ]
     );
-    console.log("extradataOneA", extradataOneA);
+    console.log(
+      `extradataOneA(address[],uint256[],bytes4[],bytes): ${extradataOneA}(${
+        staticC.address
+      }, ${(aEDParams.length - 2) / 2}, ${aEDSelector}, ${aEDParams})`
+    );
 
     const extradataOneB = ethers.utils.defaultAbiCoder.encode(
       ["address[]", "uint256[]", "bytes4[]", "bytes"],
@@ -179,7 +188,11 @@ describe("Exchange", function () {
         bEDParams,
       ]
     );
-    console.log("extradataOneB", extradataOneB);
+    console.log(
+      `extradataOneB(address[],uint256[],bytes4[],bytes): ${extradataOneB}(${
+        staticC.address
+      }, ${(bEDParams.length - 2) / 2}, ${bEDSelector}, ${bEDParams})`
+    );
 
     const paramsOneA = ethers.utils.defaultAbiCoder.encode(
       ["address[2]", "bytes4[2]", "bytes", "bytes"],
@@ -190,7 +203,9 @@ describe("Exchange", function () {
         extradataOneB,
       ]
     );
-    console.log("paramsOneA", paramsOneA);
+    console.log(
+      `paramsOneA(address[2],bytes4[2],bytes,bytes): ${paramsOneA}(${staticC.address}, ${selectorOneA}, ${extradataOneA}, ${extradataOneB})`
+    );
 
     const one = {
       registry: registryC.address,
@@ -224,7 +239,7 @@ describe("Exchange", function () {
     );
     console.log("one sig", sig);
     const listOrderSignedData: any = parseSig(sig);
-    console.log("listOrderSignedData", listOrderSignedData);
+    console.log("sig rsv", listOrderSignedData);
 
     // trade
     const selectorTwo = staticInterface.getSighash("anyAddOne");
@@ -238,7 +253,7 @@ describe("Exchange", function () {
       staticTarget: staticC.address,
       staticSelector: selectorTwo,
       staticExtradata: extradataTwo,
-      maximumFill: "" + sellValue,
+      maximumFill: "" + sellValue * 2,
       listingTime: "0",
       expirationTime: "10000000000",
       salt: "20",
@@ -249,15 +264,24 @@ describe("Exchange", function () {
     const transferFromFragment = erc3525Interface.getFunction(
       "safeTransferFrom(address,address,uint256,uint256,bytes)"
     );
+    console.log(
+      "erc3525 transferFromFragment: safeTransferFrom",
+      transferFromFragment
+    );
+
     const firstErc3525Call =
       erc3525Interface.encodeFunctionData(transferFromFragment, [
         user1.address,
         user2.address,
         tokenId,
-        maximumSellValue,
+        sellValue * 2,
         "0x",
       ]) + ZERO_BYTES32.substr(2);
-    console.log("firstErc3525Call", firstErc3525Call);
+    console.log(
+      `firstErc3525Call(user1.address, user2.address, tokenId, sellValue * 2): ${firstErc3525Call}(${
+        user1.address
+      }, ${user2.address}, ${tokenId}, ${sellValue * 2})`
+    );
 
     const firstData = atomicizerInterface.encodeFunctionData("atomicize", [
       [erc3525C.address],
@@ -265,36 +289,52 @@ describe("Exchange", function () {
       [(firstErc3525Call.length - 2) / 2],
       firstErc3525Call,
     ]);
-    console.log("firstData", firstData);
+    console.log(
+      `firstData(address[],uint256[],uint256,bytes): ${firstData}(${
+        erc3525C.address
+      }, 0, ${(firstErc3525Call.length - 2) / 2}, ${firstErc3525Call})`
+    );
 
     const erc20Interface = new ethers.utils.Interface(TestErc20Bin.abi);
     const secondERC20Call = erc20Interface.encodeFunctionData("transferFrom", [
       user2.address,
       user1.address,
-      sellValue * price,
+      2 * sellValue * price,
     ]);
-    console.log("secondERC20Call", secondERC20Call);
+    console.log(
+      `secondERC20Call(user2.address, user1.address, 2 * sellValue * price): ${secondERC20Call}(${
+        user2.address
+      }, ${user1.address}, ${2 * sellValue * price})`
+    );
     const secondData = atomicizerInterface.encodeFunctionData("atomicize", [
       [erc20C.address],
       [0],
       [(secondERC20Call.length - 2) / 2],
       secondERC20Call,
     ]);
-    console.log("secondData", secondData);
+    console.log(
+      `secondData(address[],uint256[],uint256,bytes): ${secondData}(${
+        erc20C.address
+      }, 0, ${(secondERC20Call.length - 2) / 2}, ${secondERC20Call})`
+    );
 
     const firstCall = {
       target: atomicizerC.address,
       howToCall: 1,
       data: firstData,
     };
-    console.log("firstCall", firstCall);
+    console.log(
+      `firstCall(target,howToCall,data): ${firstCall}(${atomicizerC.address}, 1, ${firstData})`
+    );
 
     const secondCall = {
       target: atomicizerC.address,
       howToCall: 1,
       data: secondData,
     };
-    console.log("secondCall", secondCall);
+    console.log(
+      `secondCall(target,howToCall,data): ${secondCall}(${atomicizerC.address}, 1, ${secondData})`
+    );
 
     const twoSig: any = NULL_SIG;
 

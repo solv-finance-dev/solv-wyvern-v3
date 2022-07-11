@@ -126,7 +126,7 @@ contract StaticERC3525 {
         // Mark filled
         return 1;
     }
-
+    /*
     function swapOneForOneERC3525Decoding(
         bytes memory extra,
         address[7] memory addresses,
@@ -197,4 +197,5 @@ contract StaticERC3525 {
         // Mark filled
         return 1;
     }
+    */
 }
