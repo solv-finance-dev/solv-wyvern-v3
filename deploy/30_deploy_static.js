@@ -7,14 +7,11 @@ module.exports = async ({getNamedAccounts, gasNowPrice, deployments, network, ot
     const gasPrice = await gasNowPrice.getGasPrice(network.name);
     console.log(`network ${network.name} gasPrice ${gasPrice}`);
 
-    const atomicizerAddress = await otherDeployments.address('./', network.name, 'WyvernAtomicizer')
-    console.log(`atomicizerAddress ${atomicizerAddress}`);
-
-    const contractName = 'WyvernStatic'
+    const contractName = 'StaticMarket'
 
     let deployed = await deploy(contractName, {
         from: deployer,
-        args: [atomicizerAddress],
+        args: [],
         gasPrice: gasPrice,
         log: true,
     });
@@ -24,4 +21,3 @@ module.exports = async ({getNamedAccounts, gasNowPrice, deployments, network, ot
 
 
 module.exports.tags = ['wyStatic']
-module.exports.dependencies = ['wyAtomicizer']

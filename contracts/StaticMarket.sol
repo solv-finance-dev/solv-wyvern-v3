@@ -8,6 +8,7 @@ pragma solidity 0.7.5;
 
 import "./lib/ArrayUtils.sol";
 import "./registry/AuthenticatedProxy.sol";
+import "hardhat/console.sol";
 
 /**
  * @title StaticMarket
@@ -25,7 +26,7 @@ contract StaticMarket {
         uint256[6] memory uints,
         bytes memory data,
         bytes memory counterdata
-    ) public pure returns (uint256) {
+    ) public view returns (uint256) {
         require(uints[0] == 0, "anyERC3525ForERC20: Zero value required");
         require(
             howToCalls[0] == AuthenticatedProxy.HowToCall.Call,
@@ -55,13 +56,31 @@ contract StaticMarket {
         );
 
         uint256[2] memory call_amounts = [
-            getERC1155AmountFromCalldata(data),
+            getERC3525AmountFromCalldata(data),
             getERC20AmountFromCalldata(counterdata)
         ];
         uint256 new_fill = SafeMath.add(uints[5], call_amounts[0]);
         require(
             new_fill <= uints[1],
             "anyERC3525ForERC20: new fill exceeds maximum fill"
+        );
+        console.log(
+            "anyERC3525ForERC20: tokenIdValue1",
+            tokenIdAndNumeratorDenominator[1]
+        );
+        console.log("anyERC3525ForERC20: callAmount1", call_amounts[1]);
+        console.log(
+            "anyERC3525ForERC20: tokenIdValue1*callAmount1",
+            SafeMath.mul(tokenIdAndNumeratorDenominator[1], call_amounts[1])
+        );
+        console.log(
+            "anyERC3525ForERC20: tokenIdValue2",
+            tokenIdAndNumeratorDenominator[2]
+        );
+        console.log("anyERC3525ForERC20: callAmount0", call_amounts[0]);
+        console.log(
+            "anyERC3525ForERC20: tokenIdValue2*callAmount0",
+            SafeMath.mul(tokenIdAndNumeratorDenominator[2], call_amounts[0])
         );
         require(
             SafeMath.mul(tokenIdAndNumeratorDenominator[1], call_amounts[1]) ==
@@ -85,6 +104,8 @@ contract StaticMarket {
             call_amounts[1]
         );
 
+        console.log("anyERC20ForERC3525: success");
+
         return new_fill;
     }
 
@@ -95,7 +116,7 @@ contract StaticMarket {
         uint256[6] memory uints,
         bytes memory data,
         bytes memory counterdata
-    ) public pure returns (uint256) {
+    ) public view returns (uint256) {
         require(uints[0] == 0, "anyERC20ForERC3525: Zero value required");
         require(
             howToCalls[0] == AuthenticatedProxy.HowToCall.Call,
@@ -133,6 +154,16 @@ contract StaticMarket {
             new_fill <= uints[1],
             "anyERC20ForERC3525: new fill exceeds maximum fill"
         );
+        console.log(
+            "anyERC20ForERC3525: tokenIdValue1",
+            tokenIdAndNumeratorDenominator[1]
+        );
+        console.log("anyERC3525ForERC20: callAmount1", call_amounts[1]);
+        console.log(
+            "anyERC20ForERC3525: tokenIdValue2",
+            tokenIdAndNumeratorDenominator[2]
+        );
+        console.log("anyERC20ForERC3525: callAmount0", call_amounts[0]);
         require(
             SafeMath.mul(tokenIdAndNumeratorDenominator[1], call_amounts[0]) ==
                 SafeMath.mul(
@@ -149,6 +180,7 @@ contract StaticMarket {
             call_amounts[0]
         );
         checkERC20Side(data, addresses[1], addresses[4], call_amounts[1]);
+        console.log("anyERC20ForERC3525: success");
 
         return new_fill;
     }

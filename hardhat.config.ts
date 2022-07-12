@@ -14,6 +14,9 @@ import "./deploy/helpers/otherDeployments";
 const DEPLOYER_PRIVATE_KEY =
   process.env.RINKEBY_PRIVATE_KEY! ||
   "0000000000000000000000000000000000000000000000000000000000000000";
+const TESTER_PRIVATE_KEY =
+  process.env.TESTER_PRIVATE_KEY! ||
+  "0000000000000000000000000000000000000000000000000000000000000000";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 const COINMARKETCAP_API_KEY = process.env.COINMARKETCAP_API_KEY || "";
 const INFURA_KEY = process.env.INFURA_KEY || "";
@@ -42,7 +45,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 10,
+            runs: 100,
           },
         },
       },
@@ -50,6 +53,7 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: 0,
+    tester: 1,
   },
   networks: {
     hardhat: {
@@ -61,12 +65,15 @@ const config: HardhatUserConfig = {
     development: {
       chainId: 4,
       url: `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
-      accounts: [DEPLOYER_PRIVATE_KEY],
+      accounts: [DEPLOYER_PRIVATE_KEY, TESTER_PRIVATE_KEY],
     },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: "USD",
+  },
+  mocha: {
+    timeout: 20000000,
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,

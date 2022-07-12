@@ -35,8 +35,8 @@ contract StaticCaller {
         view
         returns (uint256 ret)
     {
-        console.log("target", target);
-        console.logBytes(data);
+        //console.log("target", target);
+        //console.logBytes(data);
         bool result;
         assembly {
             let size := 0x20
